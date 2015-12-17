@@ -47,7 +47,7 @@ static const string endl = "\n"; // avoid ostream << std::endl flushes
 
 class t_csharp_generator : public t_oop_generator {
 public:
-  t_csharp_generator(t_program* program,
+    t_csharp_generator(t_program* program,
                      const std::map<std::string, std::string>& parsed_options,
                      const std::string& option_string)
     : t_oop_generator(program) {
@@ -65,6 +65,9 @@ public:
 
     iter = parsed_options.find("nullable");
     nullable_ = (iter != parsed_options.end());
+
+    iter = parsed_options.find("meta");
+    meta_ = (iter != parsed_options.end());
 
     iter = parsed_options.find("hashcode");
     hashcode_ = (iter != parsed_options.end());
@@ -218,6 +221,7 @@ private:
   bool async_;
   bool async_ctp_;
   bool nullable_;
+  bool meta_;
   bool union_;
   bool hashcode_;
   bool serialize_;
@@ -695,11 +699,14 @@ void t_csharp_generator::generate_csharp_struct_definition(ofstream& out,
                 << endl; // do not make exception classes directly WCF serializable, we provide a
                          // separate "fault" for that
   }
-  if(is_exception) {
-	indent(out) << "[Exception(\"" << tstruct->get_name() << "\")]" << endl;
-  }
-  else {
-	indent(out) << "[Struct(\"" << tstruct->get_name() << "\")]" << endl;
+
+  if (meta_) {
+    if (is_exception) {
+      indent(out) << "[Exception(\"" << tstruct->get_name() << "\")]" << endl;
+    }
+    else {
+      indent(out) << "[Struct(\"" << tstruct->get_name() << "\")]" << endl;
+    }
   }
 
   bool is_final = (tstruct->annotations_.find("final") != tstruct->annotations_.end());
@@ -1223,7 +1230,9 @@ void t_csharp_generator::generate_csharp_union_definition(std::ofstream& out, t_
   // Let's define the class first
   start_csharp_namespace(out);
 
-  indent(out) << "[Union(\"" << tunion->get_name() << "\")]" << endl;
+  if (meta_) {
+    indent(out) << "[Union(\"" << tunion->get_name() << "\")]" << endl;
+  }
 
   indent(out) << "public abstract partial class " << tunion->get_name() << " : TAbstractBase {"
               << endl;
@@ -2477,7 +2486,7 @@ void t_csharp_generator::generate_csharp_property(ofstream& out,
   }
   bool has_default = field_has_default(tfield);
   bool is_required = field_is_required(tfield);
-  if(isPublic) {
+  if(isPublic && meta_) {
 	  indent(out) << "[FieldId(" << tfield->get_key() << ")]" << endl;
   }
   if ((nullable_ && !has_default) || (is_required)) {
@@ -2897,6 +2906,7 @@ THRIFT_REGISTER_GENERATOR(
     "    wcf:             Adds bindings for WCF to generated classes.\n"
     "    serial:          Add serialization support to generated classes.\n"
     "    nullable:        Use nullable types for properties.\n"
+	"    meta:            Add metadata attributes providing data such as type (struct/union/exception) and field ids.\n "
     "    hashcode:        Generate a hashcode and equals implementation for classes.\n"
     "    union:           Use new union typing, which includes a static read function for union "
     "types.\n")
