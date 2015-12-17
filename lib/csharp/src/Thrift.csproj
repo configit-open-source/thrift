@@ -79,6 +79,11 @@
   <ItemGroup>
     <Compile Include="Collections\TCollections.cs" />
     <Compile Include="Collections\THashSet.cs" />
+    <Compile Include="Meta\TypeAttribute.cs" />
+    <Compile Include="Meta\ExceptionAttribute.cs" />
+    <Compile Include="Meta\StructAttribute.cs" />
+    <Compile Include="Meta\FieldIdAttribute.cs" />
+    <Compile Include="Meta\UnionAttribute.cs" />
     <Compile Include="TControllingHandler.cs" />
     <Compile Include="TProcessorFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

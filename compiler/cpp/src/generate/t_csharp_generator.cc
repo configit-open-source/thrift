@@ -410,7 +410,7 @@ string t_csharp_generator::csharp_type_usings() {
   return string() + "using System;\n" + "using System.Collections;\n"
          + "using System.Collections.Generic;\n" + "using System.Text;\n" + "using System.IO;\n"
          + ((async_ || async_ctp_) ? "using System.Threading.Tasks;\n" : "") + "using Thrift;\n"
-         + "using Thrift.Collections;\n" + ((serialize_ || wcf_) ? "#if !SILVERLIGHT\n" : "")
+         + "using Thrift.Collections;\nusing Thrift.Meta\n" + ((serialize_ || wcf_) ? "#if !SILVERLIGHT\n" : "")
          + ((serialize_ || wcf_) ? "using System.Xml.Serialization;\n" : "")
          + ((serialize_ || wcf_) ? "#endif\n" : "") + (wcf_ ? "//using System.ServiceModel;\n" : "")
          + "using System.Runtime.Serialization;\n";
@@ -695,6 +695,13 @@ void t_csharp_generator::generate_csharp_struct_definition(ofstream& out,
                 << endl; // do not make exception classes directly WCF serializable, we provide a
                          // separate "fault" for that
   }
+  if(is_exception) {
+	indent(out) << "[Exception(\"" << tstruct->get_name() << "\")]" << endl;
+  }
+  else {
+	indent(out) << "[Struct(\"" << tstruct->get_name() << "\")]" << endl;
+  }
+
   bool is_final = (tstruct->annotations_.find("final") != tstruct->annotations_.end());
 
   indent(out) << "public " << (is_final ? "sealed " : "") << "partial class "
@@ -995,7 +1002,7 @@ void t_csharp_generator::generate_csharp_struct_reader(ofstream& out, t_struct* 
 void t_csharp_generator::generate_csharp_struct_writer(ofstream& out, t_struct* tstruct) {
   out << indent() << "public void Write(TProtocol oprot) {" << endl;
   indent_up();
-  
+
   out << indent() << "oprot.IncrementRecursionDepth();" << endl;
   out << indent() << "try" << endl;
   scope_up(out);
@@ -1051,7 +1058,7 @@ void t_csharp_generator::generate_csharp_struct_writer(ofstream& out, t_struct* 
   scope_down(out);
 
   indent_down();
-  
+
   indent(out) << "}" << endl << endl;
 }
 
@@ -1215,6 +1222,8 @@ void t_csharp_generator::generate_csharp_union(t_struct* tunion) {
 void t_csharp_generator::generate_csharp_union_definition(std::ofstream& out, t_struct* tunion) {
   // Let's define the class first
   start_csharp_namespace(out);
+
+  indent(out) << "[Union(\"" << tunion->get_name() << "\")]" << endl;
 
   indent(out) << "public abstract partial class " << tunion->get_name() << " : TAbstractBase {"
               << endl;
@@ -2468,6 +2477,9 @@ void t_csharp_generator::generate_csharp_property(ofstream& out,
   }
   bool has_default = field_has_default(tfield);
   bool is_required = field_is_required(tfield);
+  if(isPublic) {
+	  indent(out) << "[FieldId(" << tfield->get_key() << ")]" << endl;
+  }
   if ((nullable_ && !has_default) || (is_required)) {
     indent(out) << (isPublic ? "public " : "private ")
                 << type_name(tfield->get_type(), false, false, true, is_required) << " "
