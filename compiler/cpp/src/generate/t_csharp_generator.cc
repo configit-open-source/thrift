@@ -414,7 +414,7 @@ string t_csharp_generator::csharp_type_usings() {
   return string() + "using System;\n" + "using System.Collections;\n"
          + "using System.Collections.Generic;\n" + "using System.Text;\n" + "using System.IO;\n"
          + ((async_ || async_ctp_) ? "using System.Threading.Tasks;\n" : "") + "using Thrift;\n"
-         + "using Thrift.Collections;\nusing Thrift.Meta\n" + ((serialize_ || wcf_) ? "#if !SILVERLIGHT\n" : "")
+         + "using Thrift.Collections;\nusing Thrift.Meta;\n" + ((serialize_ || wcf_) ? "#if !SILVERLIGHT\n" : "")
          + ((serialize_ || wcf_) ? "using System.Xml.Serialization;\n" : "")
          + ((serialize_ || wcf_) ? "#endif\n" : "") + (wcf_ ? "//using System.ServiceModel;\n" : "")
          + "using System.Runtime.Serialization;\n";
